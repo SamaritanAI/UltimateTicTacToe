@@ -31,6 +31,7 @@ public class MainApp extends Application {
         buttons = new Button[3][3][9];
         subGrids = new GridPane[3][3];
 
+
         primaryStage.setTitle("Ultimate Tic Tac Toe with RL");
 
         GridPane grid = new GridPane();
@@ -111,6 +112,7 @@ public class MainApp extends Application {
                 }
             }
         }
+
     }
 
     private void disableBoard(int boardRow, int boardCol) {
