@@ -37,4 +37,8 @@ public class UltimateBoard {
             }
         }
     }
+
+    public Board getBoard(int actionBoardRow, int actionBoardCol) {
+        return boards[actionBoardRow][actionBoardCol];
+    }
 }
