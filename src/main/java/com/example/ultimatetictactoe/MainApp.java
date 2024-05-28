@@ -2,14 +2,12 @@ package com.example.ultimatetictactoe;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 import javafx.scene.control.Button;
 
 //styling
 import javafx.scene.layout.Border;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.BorderWidths;
@@ -112,7 +110,6 @@ public class MainApp extends Application {
                 }
             }
         }
-
     }
 
     private void disableBoard(int boardRow, int boardCol) {

@@ -2,15 +2,28 @@ package com.example.ultimatetictactoe;
 
 import com.example.RandomPlayer;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
+
 public class Simulation {
     private Agent rlAgent;
     private RandomPlayer randomPlayer;
     private int gamesToPlay;
+    private List<Double> winRates;
+    private List<Double> lossRates;
+    private List<Double> drawRates;
 
     public Simulation(int gamesToPlay) {
         this.rlAgent = new Agent(0.1, 0.9, 0.1);
         this.randomPlayer = new RandomPlayer();
         this.gamesToPlay = gamesToPlay;
+        this.winRates = new ArrayList<>();
+        this.lossRates = new ArrayList<>();
+        this.drawRates = new ArrayList<>();
     }
 
     public void run() {
@@ -22,14 +35,17 @@ public class Simulation {
             UltimateBoard ultimateBoard = new UltimateBoard();
             Player currentPlayer = Player.X;
 
+            String previousState = null;
+            int previousAction = -1;
+
             while (true) {
+                String state = getState(ultimateBoard);
                 if (currentPlayer == Player.X) {
                     int[] possibleActions = getPossibleActions(ultimateBoard);
                     if (possibleActions.length == 0) {
                         break; // No valid moves left, it's a draw
                     }
 
-                    String state = getState(ultimateBoard);
                     int action = rlAgent.chooseAction(state, possibleActions);
                     int boardRow = action / 27;
                     int boardCol = (action % 27) / 9;
@@ -38,8 +54,19 @@ public class Simulation {
 
                     if (ultimateBoard.isMoveValid(boardRow, boardCol, cellRow, cellCol)) {
                         ultimateBoard.makeMove(boardRow, boardCol, cellRow, cellCol, currentPlayer);
+
+                        if (previousState != null) {
+                            int reward = checkWinner(ultimateBoard);
+                            int[] nextPossibleActions = getPossibleActions(ultimateBoard);
+                            rlAgent.updateQTable(previousState, previousAction, reward, state, nextPossibleActions);
+                        }
+
+                        previousState = state;
+                        previousAction = action;
+
                         if (ultimateBoard.getBoard(boardRow, boardCol).isWon()) {
                             rlAgentWins++;
+                            rlAgent.updateQTable(state, action, 1, state, new int[0]); // Reward for winning
                             break;
                         }
                         currentPlayer = Player.O;
@@ -56,8 +83,10 @@ public class Simulation {
 
                     if (ultimateBoard.isMoveValid(boardRow, boardCol, cellRow, cellCol)) {
                         ultimateBoard.makeMove(boardRow, boardCol, cellRow, cellCol, currentPlayer);
+
                         if (ultimateBoard.getBoard(boardRow, boardCol).isWon()) {
                             randomPlayerWins++;
+                            rlAgent.updateQTable(previousState, previousAction, -1, state, new int[0]); // Penalty for losing
                             break;
                         }
                         currentPlayer = Player.X;
@@ -66,20 +95,35 @@ public class Simulation {
 
                 if (isDraw(ultimateBoard)) {
                     draws++;
+                    rlAgent.updateQTable(previousState, previousAction, 0, getState(ultimateBoard), new int[0]); // No reward for draw
                     break;
                 }
             }
-
-            String nextState = getState(ultimateBoard);
-            int reward = checkWinner(ultimateBoard);
-            int[] nextPossibleActions = getPossibleActions(ultimateBoard);
-            rlAgent.updateQTable(getState(ultimateBoard), 0, reward, nextState, nextPossibleActions);
+            winRates.add((double) rlAgentWins / (i + 1));
+            lossRates.add((double) randomPlayerWins / (i + 1));
+            drawRates.add((double) draws / (i + 1));
         }
+
+        saveStatistics("win_rates.csv", winRates);
+        saveStatistics("loss_rates.csv", lossRates);
+        saveStatistics("draw_rates.csv", drawRates);
 
         System.out.println("Results after " + gamesToPlay + " games:");
         System.out.println("RL Agent Wins: " + rlAgentWins);
         System.out.println("Random Player Wins: " + randomPlayerWins);
         System.out.println("Draws: " + draws);
+
+        saveQTableToFile("qtable.txt");
+    }
+
+    private void saveStatistics(String filename, List<Double> statistics) {
+        try (FileWriter writer = new FileWriter(filename)) {
+            for (Double value : statistics) {
+                writer.write(value.toString() + "\n");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private int[] getPossibleActions(UltimateBoard ultimateBoard) {
@@ -114,6 +158,21 @@ public class Simulation {
         return sb.toString();
     }
 
+    private void saveQTableToFile(String filename) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
+            for (Map.Entry<String, double[]> entry : rlAgent.qTable.entrySet()) {
+                writer.write(entry.getKey() + ": ");
+                for (double value : entry.getValue()) {
+                    writer.write(value + " ");
+                }
+                writer.newLine();
+            }
+            System.out.println("Q-table saved to " + filename);
+        } catch (IOException e) {
+            System.err.println("Error writing Q-table to file: " + e.getMessage());
+        }
+    }
+
     private int checkWinner(UltimateBoard ultimateBoard) {
         Player winner = ultimateBoard.getOverallBoard().getWinner();
         if (winner == Player.X) {
@@ -136,7 +195,7 @@ public class Simulation {
     }
 
     public static void main(String[] args) {
-        Simulation simulation = new Simulation(1000);
+        Simulation simulation = new Simulation(1_000_000);
         simulation.run();
     }
 }
