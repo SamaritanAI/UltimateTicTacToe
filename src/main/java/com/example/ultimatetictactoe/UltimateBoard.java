@@ -8,8 +8,8 @@ public class UltimateBoard {
         boards = new Board[3][3];
         overallBoard = new Board();
 
-        for(int i = 0; i < 3; i++) {
-            for(int j = 0; j < 3; j++) {
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
                 boards[i][j] = new Board();
             }
         }
@@ -28,7 +28,7 @@ public class UltimateBoard {
     }
 
     public void makeMove(int boardRow, int boardCol, int cellRow, int cellCol, Player player) {
-        if(isMoveValid(boardRow, boardCol, cellRow, cellCol)) {
+        if (isMoveValid(boardRow, boardCol, cellRow, cellCol)) {
             boards[boardRow][boardCol].getCell(cellRow, cellCol).setPlayer(player);
 
             Player winner = boards[boardRow][boardCol].getWinner();
