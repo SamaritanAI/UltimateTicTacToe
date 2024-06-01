@@ -2,6 +2,8 @@
 
 This repository contains an implementation of Ultimate Tic Tac Toe with an AI agent that learns to play using Q-learning, a form of Reinforcement Learning. The project also includes a simulation framework to test and evaluate the performance of the AI against a random player.
 
+![image](https://github.com/SamaritanAI/UltimateTicTacToe/assets/33179496/f094eaa3-7346-4680-9823-2e43f7f6874b)
+
 ## Table of Contents
 
 - [Introduction](#introduction)
